@@ -19,6 +19,7 @@ func TestListaVacia(t *testing.T) {
 	t.Log("Hacemos pruebas con lista vacia")
 	heap := TDAHeap.CrearHeap(cmpFunc)
 	require.True(t, heap.EstaVacia())
+
 	require.Equal(t, 0, heap.Cantidad())
 	require.PanicsWithValue(t, "La cola esta vacia", func() { heap.Desencolar() })
 	require.PanicsWithValue(t, "La cola esta vacia", func() { heap.VerMax() })
@@ -48,6 +49,7 @@ func TestInsertarPrimero(t *testing.T) {
 	require.Equal(t, 23, heap.VerMax())
 	require.Equal(t, 6, heap.Cantidad())
 }
+
 func TestBorrar(t *testing.T) {
 	t.Log("Hacemos pruebas Borrando algunos elementos")
 	cmpFunc := func(a, b int) int {
@@ -74,18 +76,52 @@ func TestBorrar(t *testing.T) {
 	require.PanicsWithValue(t, "La cola esta vacia", func() { heap.Desencolar() })
 	require.Equal(t, true, heap.EstaVacia())
 }
-func TestHeapify[T comparable](t *testing.T) {
+
+func TestHeapify(t *testing.T) {
 	t.Log("Hacemos pruebas Heapify")
-	cmpFunc := func(a, b int) int {
+	arr := []int{5, 6, 9, 10}
+	heap := TDAHeap.CrearHeapArr(arr[:], func(a, b int) int {
 		if a > b {
 			return 1
 		} else if a < b {
 			return -1
 		}
 		return 0
-	}
-	arr := []int{5, 6, 9, 10}
-	heap := TDAHeap.CrearHeapArr(arr, cmpFunc)
+	})
 
 	require.Equal(t, 10, heap.VerMax())
+	require.Equal(t, 10, heap.Desencolar())
+	require.Equal(t, 9, heap.VerMax())
+	require.Equal(t, 9, heap.Desencolar())
+	require.Equal(t, 6, heap.Desencolar())
+	require.Equal(t, 5, heap.Desencolar())
+
+	arr2 := []int{5, 3, 1, 2}
+	heap2 := TDAHeap.CrearHeapArr(arr2[:], func(a, b int) int {
+		if a > b {
+			return 1
+		} else if a < b {
+			return -1
+		}
+		return 0
+	})
+	require.Equal(t, 5, heap2.VerMax())
+}
+
+func TestHeapsort(t *testing.T) {
+	t.Log("Hacemos pruebas HeapSort")
+	arr := []int{5, 3, 1, 2, 4, 8, 9, 6, 7}
+
+	TDAHeap.HeapSort(arr[:], func(a, b int) int {
+		if a > b {
+			return 1
+		} else if a < b {
+			return -1
+		}
+		return 0
+	})
+	for i := 1; i < len(arr)-2; i++ {
+		require.Equal(t, i, arr[i-1])
+	}
+
 }

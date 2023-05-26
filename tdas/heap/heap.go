@@ -1,89 +1,101 @@
 package cola_prioridad
 
 type heap[T comparable] struct {
-	arreglo     []T
-	funcion_cmp func(T, T) int
+	arreglo    []T
+	funcionCmp func(T, T) int
 }
 
 func CrearHeap[T comparable](funcion_cmp func(T, T) int) ColaPrioridad[T] {
 	heap := new(heap[T])
-	heap.funcion_cmp = funcion_cmp
+	heap.funcionCmp = funcion_cmp
 	return heap
 }
 func CrearHeapArr[T comparable](arreglo []T, funcion_cmp func(T, T) int) ColaPrioridad[T] {
 	heap := new(heap[T])
 	heap.arreglo = arreglo
-	for i := len(arreglo); i >= 0; i-- {
-		heap.downHeap(i)
-	}
+	heap.funcionCmp = funcion_cmp
+
+	Heapify(arreglo, funcion_cmp)
+
 	return heap
 }
-func HeapSort[T comparable](elementos []T, funcion_cmp func(T, T) int) {
+func Heapify[T comparable](arreglo []T, funcionCmp func(T, T) int) {
 
+	for i := ((len(arreglo) - 1) / 2); i >= 0; i-- {
+		downHeap(arreglo, len(arreglo), i, funcionCmp)
+	}
+}
+
+func downHeapLoop[T comparable](arr []T, funcionCmp func(T, T) int) {
+
+}
+func HeapSort[T comparable](elementos []T, funcion_cmp func(T, T) int) {
+	Heapify(elementos, funcion_cmp)
+
+	i := len(elementos) - 1
+	for i >= 0 {
+
+		swap(&elementos[0], &elementos[i])
+		downHeap(elementos, i, 0, funcion_cmp)
+		i -= 1
+	}
 }
 
 func (h *heap[T]) EstaVacia() bool {
 	return len(h.arreglo) == 0
 }
-func (h *heap[T]) swap(viejo, nuevo int) {
-	aux := h.arreglo[viejo]
-	h.arreglo[viejo] = h.arreglo[nuevo]
-	h.arreglo[nuevo] = aux
-}
-func (h *heap[T]) comparacionPadreHijo(padre, hijo int) bool {
-	if h.funcion_cmp(h.arreglo[padre], h.arreglo[hijo]) > 0 {
-		return false
-	} else {
-		return true
-	}
+func swap[T comparable](viejo, nuevo *T) {
+	aux := *viejo
+	*viejo = *nuevo
+	*nuevo = aux
 }
 
-func (h *heap[T]) upHeap(hijo int) {
+func upHeap[T comparable](arr *[]T, hijo int, funcionCmp func(T, T) int) {
 	if hijo == 0 {
 		return
 	}
 	posPadre := uint((hijo - 1) / 2)
-	if h.comparacionPadreHijo(int(posPadre), hijo) {
-
-		h.swap(int(posPadre), hijo)
-
-		h.upHeap(int(posPadre))
+	if funcionCmp((*arr)[int(posPadre)], (*arr)[hijo]) < 0 {
+		swap(&(*arr)[int(posPadre)], &(*arr)[hijo])
+		upHeap(arr, int(posPadre), funcionCmp)
 	}
 }
-func (h *heap[T]) maximoDeTres(hIzq, hDer, padre int) int {
-	if h.funcion_cmp(h.arreglo[padre], h.arreglo[hDer]) > 0 && h.funcion_cmp(h.arreglo[padre], h.arreglo[hIzq]) > 0 {
-		return len(h.arreglo)
-	} else if h.funcion_cmp(h.arreglo[padre], h.arreglo[hIzq]) > 0 && h.funcion_cmp(h.arreglo[hDer], h.arreglo[hIzq]) < 0 {
-		return hIzq
-	} else {
-		return hDer
-	}
-}
-func (h *heap[T]) downHeap(padre int) {
-	if padre >= len(h.arreglo)-1 {
+func downHeap[T comparable](arr []T, tam, padre int, funcionCmp func(T, T) int) {
+	if padre >= tam-1 {
 		return
 	}
 	hIzq := 2*padre + 1
 	hDer := 2*padre + 2
-
 	max := padre
 
-	if hDer <= (len(h.arreglo) - 1) {
-		max = h.maximoDeTres(hIzq, hDer, padre)
-	} else if hIzq <= (len(h.arreglo)-1) && h.comparacionPadreHijo(int(padre), hIzq) {
-		max = hIzq
+	if hDer < (tam) {
+
+		if funcionCmp(arr[padre], arr[hDer]) > 0 && funcionCmp(arr[padre], arr[hIzq]) > 0 {
+			max = padre
+		} else if funcionCmp(arr[hDer], arr[hIzq]) > 0 {
+			max = hDer
+		} else {
+			max = hIzq
+		}
+	} else if hIzq < (tam) {
+		if funcionCmp(arr[padre], arr[hIzq]) < 0 {
+			max = hIzq
+		} else {
+			//caso base
+			return
+		}
 	}
 
-	h.swap(max, padre)
-
-	h.downHeap(max)
+	if max != padre {
+		swap(&(arr)[max], &(arr)[padre])
+		downHeap(arr, tam, max, funcionCmp)
+	}
 
 }
 
 func (h *heap[T]) Encolar(nuevo T) {
 	h.arreglo = append(h.arreglo, nuevo)
-
-	h.upHeap(len(h.arreglo) - 1)
+	upHeap(&h.arreglo, len(h.arreglo)-1, h.funcionCmp)
 }
 
 func (h *heap[T]) VerMax() T {
@@ -98,12 +110,13 @@ func (h *heap[T]) Desencolar() T {
 		panic("La cola esta vacia")
 	}
 	dato := h.arreglo[0]
-	h.swap(len(h.arreglo)-1, 0)
-
+	swap(&h.arreglo[len(h.arreglo)-1], &h.arreglo[0])
 	h.arreglo = h.arreglo[:len(h.arreglo)-1]
+
 	if !h.EstaVacia() {
-		h.downHeap(0)
+		downHeap(h.arreglo, len(h.arreglo), 0, h.funcionCmp)
 	}
+
 	return dato
 }
 
