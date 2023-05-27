@@ -1,8 +1,9 @@
 package cola_prioridad
 
 type heap[T comparable] struct {
-	arreglo    []T
-	funcionCmp func(T, T) int
+	arreglo     []T
+	funcionCmp  func(T, T) int
+	tamanioHeap int
 }
 
 func CrearHeap[T comparable](funcion_cmp func(T, T) int) ColaPrioridad[T] {
@@ -12,25 +13,28 @@ func CrearHeap[T comparable](funcion_cmp func(T, T) int) ColaPrioridad[T] {
 }
 func CrearHeapArr[T comparable](arreglo []T, funcion_cmp func(T, T) int) ColaPrioridad[T] {
 	heap := new(heap[T])
-	heap.arreglo = arreglo
+	heap.arreglo = make([]T, len(arreglo))
+	copiarArreglo(&heap.arreglo, arreglo)
+	heap.tamanioHeap = len(arreglo)
 	heap.funcionCmp = funcion_cmp
-
-	Heapify(arreglo, funcion_cmp)
+	heapify(heap.arreglo, funcion_cmp)
 
 	return heap
 }
-func Heapify[T comparable](arreglo []T, funcionCmp func(T, T) int) {
+func copiarArreglo[T comparable](copiar *[]T, original []T) {
+	for i := 0; i < len(original); i++ {
+		(*copiar)[i] = original[i]
+	}
+}
+func heapify[T comparable](arreglo []T, funcionCmp func(T, T) int) {
 
 	for i := ((len(arreglo) - 1) / 2); i >= 0; i-- {
 		downHeap(arreglo, len(arreglo), i, funcionCmp)
 	}
 }
 
-func downHeapLoop[T comparable](arr []T, funcionCmp func(T, T) int) {
-
-}
 func HeapSort[T comparable](elementos []T, funcion_cmp func(T, T) int) {
-	Heapify(elementos, funcion_cmp)
+	heapify(elementos, funcion_cmp)
 
 	i := len(elementos) - 1
 	for i >= 0 {
@@ -96,6 +100,7 @@ func downHeap[T comparable](arr []T, tam, padre int, funcionCmp func(T, T) int) 
 func (h *heap[T]) Encolar(nuevo T) {
 	h.arreglo = append(h.arreglo, nuevo)
 	upHeap(&h.arreglo, len(h.arreglo)-1, h.funcionCmp)
+	h.tamanioHeap += 1
 }
 
 func (h *heap[T]) VerMax() T {
@@ -104,6 +109,13 @@ func (h *heap[T]) VerMax() T {
 	}
 	return h.arreglo[0]
 }
+func (h *heap[T]) redimensionar() {
+	aux := make([]T, h.Cantidad())
+	copiarArreglo(&aux, h.arreglo)
+	h.arreglo = aux
+	h.tamanioHeap = len(h.arreglo)
+
+}
 
 func (h *heap[T]) Desencolar() T {
 	if h.EstaVacia() {
@@ -111,10 +123,14 @@ func (h *heap[T]) Desencolar() T {
 	}
 	dato := h.arreglo[0]
 	swap(&h.arreglo[len(h.arreglo)-1], &h.arreglo[0])
-	h.arreglo = h.arreglo[:len(h.arreglo)-1]
+
+	h.arreglo = h.arreglo[:(len(h.arreglo) - 1)]
 
 	if !h.EstaVacia() {
 		downHeap(h.arreglo, len(h.arreglo), 0, h.funcionCmp)
+	}
+	if h.Cantidad() < (h.tamanioHeap / 2) {
+		h.redimensionar()
 	}
 
 	return dato

@@ -1,7 +1,7 @@
 package cola_prioridad_test
 
 import (
-	TDAHeap "tdas/heap"
+	TDAHeap "tdas/cola_prioridad"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -124,4 +124,26 @@ func TestHeapsort(t *testing.T) {
 		require.Equal(t, i, arr[i-1])
 	}
 
+}
+func TestRedim(t *testing.T) {
+	cmpFunc := func(a, b int) int {
+		if a > b {
+			return 1
+		} else if a < b {
+			return -1
+		}
+		return 0
+	}
+	t.Log("Hacemos pruebas con lista vacia")
+	heap := TDAHeap.CrearHeap(cmpFunc)
+
+	for i := 1; i <= 1000000; i++ {
+		heap.Encolar(i)
+	}
+
+	for i := 1000000; i > 0; i-- {
+		require.Equal(t, i, heap.Desencolar())
+	}
+
+	require.Equal(t, 0, heap.Cantidad())
 }
